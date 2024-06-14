@@ -2,6 +2,7 @@ import { Hono } from "hono";
 
 type Bindings = {
   DB: D1Database;
+  API_KEY: string;
 };
 
 interface Link {
@@ -78,7 +79,7 @@ linksApp.get("/links", async (c) => {
   return c.json({ links, meta: { limit, offset } });
 });
 
-// Get single link by ID
+// Get single link by ID — also increments click count
 linksApp.get("/links/:id", async (c) => {
   const id = parseInt(c.req.param("id"), 10);
 
@@ -90,6 +91,13 @@ linksApp.get("/links/:id", async (c) => {
     return c.json({ error: "Link not found" }, 404);
   }
 
+  // Increment click counter
+  await c.env.DB.prepare(
+    `UPDATE links SET clicks = clicks + 1 WHERE id = ?`
+  )
+    .bind(id)
+    .run();
+
   const tagResults = await c.env.DB.prepare(
     `SELECT t.name FROM tags t
      INNER JOIN link_tags lt ON t.id = lt.tag_id
@@ -100,6 +108,7 @@ linksApp.get("/links/:id", async (c) => {
 
   return c.json({
     ...link,
+    clicks: link.clicks + 1,
     tags: (tagResults.results ?? []).map((t) => t.name),
   });
 });

@@ -87,7 +87,3 @@ curl -X POST http://localhost:8787/api/links \
 ```bash
 npm run deploy
 ```
-
-## License
-
-MIT
