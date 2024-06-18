@@ -34,8 +34,9 @@ const linksApp = new Hono<{ Bindings: Bindings }>();
 // List all links
 linksApp.get("/links", async (c) => {
   const tag = c.req.query("tag");
-  const limit = parseInt(c.req.query("limit") || "50", 10);
-  const offset = parseInt(c.req.query("offset") || "0", 10);
+  const limitParam = parseInt(c.req.query("limit") || "50", 10);
+  const limit = Math.min(Math.max(limitParam, 1), 100);
+  const offset = Math.max(parseInt(c.req.query("offset") || "0", 10), 0);
 
   let results;
 
