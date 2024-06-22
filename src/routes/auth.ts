@@ -12,7 +12,11 @@ export async function apiKeyAuth(
   c: Context<{ Bindings: Bindings }>,
   next: Next
 ) {
-  const apiKey = c.req.header("X-API-Key");
+  // Accept either X-API-Key header or Authorization: Bearer <key>
+  const headerKey = c.req.header("X-API-Key");
+  const authHeader = c.req.header("Authorization");
+  const bearerKey = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
+  const apiKey = headerKey || bearerKey;
 
   if (!apiKey) {
     return c.json({ error: "Missing API key" }, 401);
